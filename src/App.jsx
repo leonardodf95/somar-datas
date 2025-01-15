@@ -59,7 +59,9 @@ function App() {
   }
 
   function formataData(data) {
-    return new Intl.DateTimeFormat("pt-BR").format(new Date(data));
+    return new Intl.DateTimeFormat("pt-BR").format(
+      new Date(`${data}T12:00:00`)
+    );
   }
 
   return (
