@@ -1,5 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
+import PrintableList from "./entradas.jsx";
+import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
+pdfMake.addVirtualFileSystem(pdfFonts);
 
 function App() {
   const [user, setUser] = useState("");
@@ -8,6 +12,71 @@ function App() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [entries, setEntries] = useState([]);
+  const [tempoTotal, setTempoTotal] = useState({
+    years: 0,
+    months: 0,
+    days: 0,
+  });
+
+  const generatePDF = () => {
+    const content = [
+      { text: "Relatório de Entradas", style: "header" },
+      { text: " " }, // Espaço vazio
+      //USUÁRIO
+      { text: `Usuário: ${user}`, style: "total" },
+      { text: " " }, // Espaço vazio
+      {
+        table: {
+          headerRows: 1,
+          widths: ["*", "auto", "auto", "auto"],
+          body: [
+            [
+              { text: "Local", style: "tableHeader" },
+              { text: "Data Inicial", style: "tableHeader" },
+              { text: "Data Final", style: "tableHeader" },
+              { text: "Período", style: "tableHeader" },
+            ],
+            ...entries.map((entry) => [
+              entry.local,
+              formataData(entry.startDate),
+              formataData(entry.endDate),
+              `${entry.years} anos, ${entry.months} meses, ${entry.days} dias`,
+            ]),
+          ],
+        },
+        layout: "lightHorizontalLines",
+      },
+      { text: " " }, // Espaço vazio
+      {
+        text: `Tempo Total: ${tempoTotal.years} ano(s), ${tempoTotal.months} mês(es), ${tempoTotal.days} dia(s)`,
+        style: "total",
+      },
+    ];
+
+    const docDefinition = {
+      content: content,
+      styles: {
+        header: {
+          fontSize: 18,
+          bold: true,
+          alignment: "center",
+          margin: [0, 0, 0, 10],
+        },
+        tableHeader: {
+          bold: true,
+          fontSize: 12,
+          color: "black",
+        },
+        total: {
+          bold: true,
+          fontSize: 14,
+          margin: [0, 10, 0, 0],
+        },
+      },
+    };
+
+    pdfMake.createPdf(docDefinition).open(); // Abre o PDF em uma nova aba
+  };
 
   const handleAddEntry = () => {
     if (!local.trim()) {
@@ -19,7 +88,6 @@ function App() {
       alert("As datas são obrigatórias!");
       return;
     }
-
     const start = new Date(startDate);
     const end = new Date(endDate);
 
@@ -156,7 +224,7 @@ function App() {
               <span>Entradas</span>
               <button
                 className="bg-blue-500 text-sm text-white py-1 px-2 rounded hover:bg-blue-600 h-8"
-                onClick={() => window.print()}
+                onClick={generatePDF}
               >
                 Imprimir
               </button>
