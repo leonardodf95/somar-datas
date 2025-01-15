@@ -64,6 +64,28 @@ function App() {
     );
   }
 
+  function somarTempoTotal() {
+    let total = { years: 0, months: 0, days: 0 };
+    entries.forEach((entry) => {
+      total.years += entry.years;
+      total.months += entry.months;
+      total.days += entry.days;
+    });
+    if (total.days >= 30) {
+      total.months += Math.floor(total.days / 30);
+      total.days = total.days % 30;
+    }
+    if (total.months >= 12) {
+      total.years += Math.floor(total.months / 12);
+      total.months = total.months % 12;
+    }
+    setTempoTotal(total);
+  }
+
+  useEffect(() => {
+    somarTempoTotal();
+  }, [entries]);
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
       {/* Input inicial para o usuário */}
@@ -139,28 +161,11 @@ function App() {
                 Imprimir
               </button>
             </h2>
-            {entries.length === 0 ? (
-              <p className="text-gray-600">Nenhuma entrada adicionada ainda.</p>
-            ) : (
-              <ul className="space-y-4">
-                {entries.map((entry, index) => (
-                  <li
-                    key={index}
-                    className="border border-gray-300 p-4 rounded-lg flex flex-col md:flex-row justify-between items-center"
-                  >
-                    <span className="font-semibold">{entry.local}</span>
-                    <span>
-                      {formataData(entry.startDate)} -{" "}
-                      {formataData(entry.endDate)}
-                    </span>
-                    <span className="text-gray-600">
-                      {entry.years} anos, {entry.months} meses, {entry.days}{" "}
-                      dias
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <PrintableList
+              entries={entries}
+              tempoTotal={tempoTotal}
+              formataData={formataData}
+            />
           </div>
         </div>
       )}
